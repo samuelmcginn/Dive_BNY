@@ -67,3 +67,53 @@ Order below should be followed for starting Data Layer AND DIVE Stack
  
 ### Analytics Worker
 `smcginn@homer~/dive/kdbdq/analytics$ q loader.q -process worker -files worker.q -offset 2`
+
+## Rules
+
+### Rules Example
+
+"Test Null Success" - Checks the total percentage of null values of TradePrice column for trade table for a given date("2024.01.04")
+
+Rules are stored as dictionaries withi the following values:  
+```
+q)first select from rules where ruleid = "G"$"04042b45-2e6e-bea2-7a03-f2c663900f15"
+rulename     | "Test Null Success"
+userid       | `sym$`a12345
+source       | `sym$`
+tablename    | `sym$`trade
+columns      | "TradePrice"
+model        | `sym$`nullcount
+grouping     | ""
+threshold    | "0.01"
+scheduletime | 05:00:00.000
+runfreq      | "daily"
+compare      | `sym$`<
+comparetarget| ""
+targetdate   | "2024.01.04"
+filter       | `sym$`
+custommodel  | ""
+aggfunc      | ""
+ruleid       | 04042b45-2e6e-bea2-7a03-f2c663900f15
+created      | 2024.02.12D22:09:09.673114000
+modified     | 2024.02.12D22:09:09.673122000
+```
+Once a rule is run, it's output can be viewed in the `rundata` table on DIVE HDB:
+```
+q)first select from rundata where ruleid="G"$"04042b45-2e6e-bea2-7a03-f2c663900f15"
+date        | 2024.07.15
+ruleid      | 04042b45-2e6e-bea2-7a03-f2c663900f15
+pass        | 1b
+output      | "0.007017172"
+runtime     | 2024.07.15D09:57:12.801007898
+datatime    | 0D00:00:00.306594719
+completetime| 0D00:00:00.000071842
+```
+We can verify the output value of this rule manually by looking at the HDB data for the specified date/table/field as shown below:
+```
+q)count select TradePrice from trade where date = 2024.01.04,null TradePrice
+188424
+q)count select TradePrice from trade where date = 2024.01.04
+26851844
+q)188424%26851844
+0.007017172
+```
